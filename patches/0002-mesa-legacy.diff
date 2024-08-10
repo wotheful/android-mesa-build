@@ -203,20 +203,6 @@ index 09da602..67d8111 100644
    include_directories : [
      inc_include, inc_util, inc_mesa, inc_mapi, inc_src, inc_gallium,
      inc_gallium_aux, inc_util, inc_gallium_drivers, inc_loader,
-diff --git a/src/gallium/targets/dri/dri_target.c b/src/gallium/targets/dri/dri_target.c
-index 6604afe..6e6ae6e 100644
---- a/src/gallium/targets/dri/dri_target.c
-+++ b/src/gallium/targets/dri/dri_target.c
-@@ -9,7 +9,8 @@
- const __DRIextension **__driDriverGetExtensions_##drivername(void);       \
- PUBLIC const __DRIextension **__driDriverGetExtensions_##drivername(void) \
- {                                                                         \
--   return galliumdrm_driver_extensions;                                   \
-+   printf("STUB: __driDriverGetExtensions_%s\n", #drivername);                     \
-+   return NULL;                                                           \
- }
- 
- #if defined(HAVE_SWRAST)
 diff --git a/src/gallium/winsys/sw/dri/dri_sw_winsys.c b/src/gallium/winsys/sw/dri/dri_sw_winsys.c
 index 6bd2e6a..3624fa8 100644
 --- a/src/gallium/winsys/sw/dri/dri_sw_winsys.c
@@ -247,15 +233,11 @@ index 13cacf4..a6d3f34 100644
  extra_libs_libglx = []
  extra_deps_libgl = []
  extra_ld_args_libgl = []
-@@ -113,7 +117,7 @@ if with_platform_windows
- endif
- libglx = static_library(
+@@ -113,3 +117,3 @@ if with_platform_windows
    'glx',
 -  [files_libglx, glx_generated],
 +  not with_platform_android and host_machine.system() != 'darwin' ? [files_libglx, glx_generated] : files('empty.c'),
    include_directories : [inc_include, inc_src, inc_glapi, inc_loader, inc_loader_x11,
-                          inc_loader_dri3, inc_gallium, inc_mesa, inc_st_dri],
-   c_args : [
 diff --git a/src/util/libsync.h b/src/util/libsync.h
 index 1515484..bdfc0c5 100644
 --- a/src/util/libsync.h
