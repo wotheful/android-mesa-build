@@ -19,8 +19,9 @@ jobs:
 
       - name: Build
         run: |
-             chmod +x ./build.sh
-             ./build.sh
+             export BUILD_ARCH=${{matrix.arch}}
+             chmod +x ./build.bash
+             ./build.bash
 
       - name: Upload libraries
         uses: actions/upload-artifact@v4
