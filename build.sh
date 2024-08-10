@@ -43,6 +43,7 @@ git apply --reject --whitespace=fix ../patches/0003-mesa-termux-package.diff || 
 meson setup "build-android" \
             --prefix=/tmp/mesa \
             --cross-file "../build-crossfile" \
+            -Dcpp_rtti=false
             -Dplatforms=android \
             -Dplatform-sdk-version=24 \
             -Dandroid-stub=true \
@@ -55,7 +56,8 @@ meson setup "build-android" \
             -Dllvm=enabled \
             -Dopengl=true \
             -Dosmesa=true \
-            -Dvulkan-drivers= \
+            -Dxmlconfig=disabled \
+            -Dvulkan-drivers=swrast \
             -Dgallium-drivers=zink \
             -Dfreedreno-kmds=kgsl,msm \
             -Dshared-glapi=false \
