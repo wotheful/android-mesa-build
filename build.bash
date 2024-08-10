@@ -48,12 +48,11 @@ meson setup "build-android" \
             -Degl=disabled \
             -Dgbm=disabled \
             -Dglx=disabled \
-            -Dllvm=enabled \
+            -Dllvm=disabled \
             -Dopengl=true \
             -Dosmesa=true \
-            -Dxmlconfig=disabled \
             -Dvulkan-drivers= \
-            -Dgallium-drivers=zink \
+            -Dgallium-drivers=swrast,zink \
             # -Dfreedreno-kmds=kgsl,msm \
             -Dshared-glapi=false \
             -Dbuildtype=release
