@@ -18,10 +18,9 @@ meson setup "build-android" \
             -Damdgpu=disabled \
             -Dnouveau=disabled \
             -Dvmwgfx=disabled \
-            # -Dfreedreno=disabled \
-            -Dvc4=disabled \
+            -Dfreedreno=disabled \
             -Detnaviv=disabled \
-            # -Dfreedreno-kgsl=true
+            -Dfreedreno-kgsl=disabled
 ninja -C "build-android" install
 
 # 构建mesa
