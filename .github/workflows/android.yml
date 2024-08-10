@@ -18,7 +18,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build
-        run: ./build.sh
+        run: |
+             chmod +x ./build.sh
+             ./build.sh
 
       - name: Upload libraries
         uses: actions/upload-artifact@v4
