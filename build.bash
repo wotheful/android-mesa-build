@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-# 安装依赖库
-sudo apt update
-sudo apt install -y libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev libxfixes-dev libdrm-dev libx11-dev
-pip3 install mako meson ninja
-
 # NDK r27 太多bug，使用NDK r26d
 export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk/ndk/26.3.11579264"
 export ANDROID_NDK_HOME="$ANDROID_SDK_ROOT/ndk-bundle"
