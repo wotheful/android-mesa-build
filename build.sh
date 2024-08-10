@@ -57,7 +57,7 @@ meson setup "build-android" \
             -Dopengl=true \
             -Dosmesa=true \
             -Dxmlconfig=disabled \
-            -Dvulkan-drivers=swrast \
+            -Dvulkan-drivers= \
             -Dgallium-drivers=zink \
             -Dfreedreno-kmds=kgsl,msm \
             -Dshared-glapi=false \
