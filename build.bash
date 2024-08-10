@@ -20,7 +20,7 @@ meson setup "build-android" \
             -Dvmwgfx=disabled \
             -Dfreedreno=disabled \
             -Detnaviv=disabled \
-            -Dfreedreno-kgsl=disabled
+            -Dfreedreno-kgsl=false
 ninja -C "build-android" install
 
 # 构建mesa
