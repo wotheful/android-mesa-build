@@ -1,0 +1,307 @@
+--- a/src/gallium/drivers/llvmpipe/lp_screen.c
++++ b/src/gallium/drivers/llvmpipe/lp_screen.c
+@@ -1092,3 +1092,6 @@
+    screen->num_threads = MIN2(screen->num_threads, LP_MAX_THREADS);
+ 
++#if defined __ANDROID__
++   screen->num_threads = 0;
++#endif
+ #ifdef HAVE_LINUX_UDMABUF_H
+--- a/src/util/anon_file.c
++++ b/src/util/anon_file.c
+@@ -136,6 +136,11 @@
+    char *name;
+ 
+    path = getenv("XDG_RUNTIME_DIR");
++#ifdef __TERMUX__
++   if (!path) {
++      path = "@TERMUX_PREFIX@/tmp";
++   }
++#endif
+    if (!path) {
+       errno = ENOENT;
+       return -1;
+--- a/meson.build
++++ b/meson.build
+@@ -1377,4 +1377,4 @@
+ endif
+ 
+-foreach h : ['xlocale.h', 'linux/futex.h', 'endian.h', 'dlfcn.h', 'sys/shm.h',
++foreach h : ['linux/futex.h', 'endian.h', 'dlfcn.h', 'sys/shm.h',
+              'cet.h', 'pthread_np.h', 'sys/inotify.h', 'linux/udmabuf.h']
+--- src/src/vulkan/wsi/wsi_common_display.c
++++ src/src/vulkan/wsi/wsi_common_display.c
+@@ -167,6 +167,12 @@
+ 
+ static uint64_t fence_sequence;
+ 
++#ifdef __ANDROID__
++static void thread_signal_handler (int signum) {
++   pthread_exit (0);
++}
++#endif
++
+ ICD_DEFINE_NONDISP_HANDLE_CASTS(wsi_display_mode, VkDisplayModeKHR)
+ ICD_DEFINE_NONDISP_HANDLE_CASTS(wsi_display_connector, VkDisplayKHR)
+ 
+@@ -1267,7 +1273,9 @@
+       .events = POLLIN
+    };
+ 
++#ifndef __ANDROID__
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
++#endif
+    for (;;) {
+       int ret = poll(&pollfd, 1, -1);
+       if (ret > 0) {
+@@ -1295,9 +1303,22 @@
+ static void
+ wsi_display_stop_wait_thread(struct wsi_display *wsi)
+ {
++#ifdef __ANDROID__
++   struct sigaction actions;
++   memset (&actions, 0, sizeof (actions));
++   sigemptyset (&actions.sa_mask);
++   actions.sa_flags = 0;
++   actions.sa_handler = thread_signal_handler;
++   sigaction (SIGUSR2, &actions, NULL);
++#endif
++
+    mtx_lock(&wsi->wait_mutex);
+    if (wsi->wait_thread) {
++#ifndef __ANDROID__
+       pthread_cancel(wsi->wait_thread);
++#else
++      pthread_kill(wsi->wait_thread, SIGUSR2);
++#endif
+       pthread_join(wsi->wait_thread, NULL);
+       wsi->wait_thread = 0;
+    }
+@@ -2075,7 +2096,9 @@
+ 
+    int udev_fd = udev_monitor_get_fd(mon);
+ 
++#ifndef __ANDROID__
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
++#endif
+ 
+    for (;;) {
+       nfds_t nfds = 1;
+@@ -2198,6 +2221,15 @@
+    struct wsi_display *wsi =
+       (struct wsi_display *) wsi_device->wsi[VK_ICD_WSI_PLATFORM_DISPLAY];
+ 
++#ifdef __ANDROID__
++   struct sigaction actions;
++   memset (&actions, 0, sizeof (actions));
++   sigemptyset (&actions.sa_mask);
++   actions.sa_flags = 0;
++   actions.sa_handler = thread_signal_handler;
++   sigaction (SIGUSR2, &actions, NULL);
++#endif
++
+    if (wsi) {
+       wsi_for_each_connector(connector, wsi) {
+          wsi_for_each_display_mode(mode, connector) {
+@@ -2209,7 +2241,11 @@
+       wsi_display_stop_wait_thread(wsi);
+ 
+       if (wsi->hotplug_thread) {
++#ifndef __ANDROID__
+          pthread_cancel(wsi->hotplug_thread);
++#else
++         pthread_kill(wsi->hotplug_thread, SIGUSR2);
++#endif
+          pthread_join(wsi->hotplug_thread, NULL);
+       }
+ 
+--- a/src/freedreno/vulkan/tu_shader.cc
++++ b/src/freedreno/vulkan/tu_shader.cc
+@@ -1980,10 +1980,10 @@
+       size += vpc_size;
+    }
+ 
+-   pthread_mutex_lock(&dev->pipeline_mutex);
++   mtx_lock(&dev->pipeline_mutex);
+    VkResult result = tu_suballoc_bo_alloc(&shader->bo, &dev->pipeline_suballoc,
+                                           size * 4, 128);
+-   pthread_mutex_unlock(&dev->pipeline_mutex);
++   mtx_unlock(&dev->pipeline_mutex);
+ 
+    if (result != VK_SUCCESS)
+       return result;
+@@ -2013,9 +2013,9 @@
+ 
+    result = tu_setup_pvtmem(dev, shader, &pvtmem_config, pvtmem_size, per_wave);
+    if (result != VK_SUCCESS) {
+-      pthread_mutex_lock(&dev->pipeline_mutex);
++      mtx_lock(&dev->pipeline_mutex);
+       tu_suballoc_bo_free(&dev->pipeline_suballoc, &shader->bo);
+-      pthread_mutex_unlock(&dev->pipeline_mutex);
++      mtx_unlock(&dev->pipeline_mutex);
+       return result;
+    }
+ 
+@@ -2419,10 +2419,10 @@
+    if (!shader)
+       return VK_ERROR_OUT_OF_HOST_MEMORY;
+ 
+-   pthread_mutex_lock(&dev->pipeline_mutex);
++   mtx_lock(&dev->pipeline_mutex);
+    VkResult result = tu_suballoc_bo_alloc(&shader->bo, &dev->pipeline_suballoc,
+                                           32 * 4, 128);
+-   pthread_mutex_unlock(&dev->pipeline_mutex);
++   mtx_unlock(&dev->pipeline_mutex);
+ 
+    if (result != VK_SUCCESS) {
+       vk_free(&dev->vk.alloc, shader);
+@@ -2528,7 +2528,7 @@
+    TU_RMV(resource_destroy, dev, &shader->bo);
+ 
+-   pthread_mutex_lock(&dev->pipeline_mutex);
++   mtx_lock(&dev->pipeline_mutex);
+    tu_suballoc_bo_free(&dev->pipeline_suballoc, &shader->bo);
+-   pthread_mutex_unlock(&dev->pipeline_mutex);
++   mtx_unlock(&dev->pipeline_mutex);
+ 
+    if (shader->pvtmem_bo)
+--- a/src/c11/threads.h
++++ b/src/c11/threads.h
+@@ -117,7 +117,15 @@
+ typedef pthread_cond_t  cnd_t;
+ typedef pthread_t       thrd_t;
+ typedef pthread_key_t   tss_t;
++#ifdef __TERMUX__
++typedef struct {
++   pthread_mutex_t mutex;
++   uint32_t init_marker;
++} mtx_t;
++#define MTX_T_INITED_MARKER 0xdeadbeef
++#else
+ typedef pthread_mutex_t mtx_t;
++#endif
+ typedef pthread_once_t  once_flag;
+ #  define ONCE_FLAG_INIT PTHREAD_ONCE_INIT
+ #  ifdef PTHREAD_DESTRUCTOR_ITERATIONS
+--- a/src/c11/impl/threads_posix.c
++++ b/src/c11/impl/threads_posix.c
+@@ -120,7 +120,11 @@
+     assert(cond != NULL);
+     assert(abs_time != NULL);
+ 
++#ifndef __TERMUX__
+     rt = pthread_cond_timedwait(cond, mtx, abs_time);
++#else
++    rt = pthread_cond_timedwait(cond, &mtx->mutex, abs_time);
++#endif
+     if (rt == ETIMEDOUT)
+         return thrd_timedout;
+     return (rt == 0) ? thrd_success : thrd_error;
+@@ -132,7 +136,11 @@
+ {
+     assert(mtx != NULL);
+     assert(cond != NULL);
++#ifndef __TERMUX__
+     return (pthread_cond_wait(cond, mtx) == 0) ? thrd_success : thrd_error;
++#else
++    return (pthread_cond_wait(cond, &mtx->mutex) == 0) ? thrd_success : thrd_error;
++#endif
+ }
+ 
+ 
+@@ -142,7 +150,12 @@
+ mtx_destroy(mtx_t *mtx)
+ {
+     assert(mtx != NULL);
++#ifndef __TERMUX__
+     pthread_mutex_destroy(mtx);
++#else
++    if (mtx->init_marker == MTX_T_INITED_MARKER)
++        pthread_mutex_destroy(&mtx->mutex);
++#endif
+ }
+ 
+ /*
+@@ -183,13 +196,22 @@
+         return thrd_error;
+ 
+     if ((type & mtx_recursive) == 0) {
++#ifndef __TERMUX__
+         pthread_mutex_init(mtx, NULL);
++#else
++        pthread_mutex_init(&mtx->mutex, NULL);
++        mtx->init_marker = MTX_T_INITED_MARKER;
++#endif
+         return thrd_success;
+     }
+ 
+     pthread_mutexattr_init(&attr);
+     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
++#ifndef __TERMUX__
+     pthread_mutex_init(mtx, &attr);
++#else
++    pthread_mutex_init(&mtx->mutex, &attr);
++#endif
+     pthread_mutexattr_destroy(&attr);
+     return thrd_success;
+ }
+@@ -199,7 +221,11 @@
+ mtx_lock(mtx_t *mtx)
+ {
+     assert(mtx != NULL);
++#ifndef __TERMUX__
+     return (pthread_mutex_lock(mtx) == 0) ? thrd_success : thrd_error;
++#else
++    return (pthread_mutex_lock(&mtx->mutex) == 0) ? thrd_success : thrd_error;
++#endif
+ }
+ 
+ static int
+@@ -227,7 +253,11 @@
+     {
+ #ifdef EMULATED_THREADS_USE_NATIVE_TIMEDLOCK
+     int rt;
++#ifndef __TERMUX__
+     rt = pthread_mutex_timedlock(mtx, ts);
++#else
++    rt = pthread_mutex_timedlock(&mtx->mutex, ts);
++#endif
+     if (rt == 0)
+         return thrd_success;
+     return (rt == ETIMEDOUT) ? thrd_timedout : thrd_error;
+@@ -252,7 +282,11 @@
+ mtx_trylock(mtx_t *mtx)
+ {
+     assert(mtx != NULL);
++#ifndef __TERMUX__
+     return (pthread_mutex_trylock(mtx) == 0) ? thrd_success : thrd_busy;
++#else
++    return (pthread_mutex_trylock(&mtx->mutex) == 0) ? thrd_success : thrd_busy;
++#endif
+ }
+ 
+ // 7.25.4.6
+@@ -260,5 +294,9 @@
+ mtx_unlock(mtx_t *mtx)
+ {
+     assert(mtx != NULL);
++#ifndef __TERMUX__
+     return (pthread_mutex_unlock(mtx) == 0) ? thrd_success : thrd_error;
++#else
++    return (pthread_mutex_unlock(&mtx->mutex) == 0) ? thrd_success : thrd_error;
++#endif
+ }
+--- a/src/gallium/winsys/virgl/vtest/virgl_vtest_winsys.c
++++ b/src/gallium/winsys/virgl/vtest/virgl_vtest_winsys.c
+@@ -304,5 +304,9 @@
+    res->res_handle = handle;
++#ifndef __TERMUX__
+    if (map_front_private && res->ptr && res->dt) {
++#else
++   if (map_front_private && res->ptr && res->dt && getenv("TERMUX_ENABLE_GLXCOPYSUBBUFFERMESA_FOR_VTEST")) {
++#endif
+       void *dt_map = vtws->sws->displaytarget_map(vtws->sws, res->dt, PIPE_MAP_READ_WRITE);
+       uint32_t shm_stride = util_format_get_stride(res->format, res->width);
+       util_copy_rect(res->ptr, res->format, shm_stride, 0, 0,
+
+
