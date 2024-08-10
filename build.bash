@@ -20,6 +20,7 @@ meson setup "build-android" \
             -Dvmwgfx=disabled \
             -Dfreedreno=disabled \
             -Detnaviv=disabled \
+            -Dvc4=disabled \
             -Dfreedreno-kgsl=false
 ninja -C "build-android" install
 
@@ -52,7 +53,7 @@ meson setup "build-android" \
             -Dosmesa=true \
             -Dxmlconfig=disabled \
             -Dvulkan-drivers= \
-            # -Dgallium-drivers=zink \
+            -Dgallium-drivers=zink \
             # -Dfreedreno-kmds=kgsl,msm \
             -Dshared-glapi=false \
             -Dbuildtype=release
