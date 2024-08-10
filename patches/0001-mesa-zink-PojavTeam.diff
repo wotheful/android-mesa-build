@@ -2,12 +2,6 @@ diff --git a/meson.build b/meson.build
 index b2cd74e..299d79d 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -879,3 +879,4 @@ if with_gallium_rusticl or with_nouveau_vk or with_tools.contains('etnaviv')
- with_clover_spirv = with_gallium_clover and get_option('opencl-spirv')
--with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi or with_asahi_vk or with_gallium_rusticl or with_clover_spirv
-+with_clover_spirv = gallium_opencl and get_option('opencl-spirv')
-+with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi or with_gallium_rusticl or with_clover_spirv
- 
 @@ -2057,6 +2057,3 @@ if dep_unwind.found() 
  if with_osmesa
 -  if not with_gallium_swrast
