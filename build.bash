@@ -6,12 +6,12 @@ sudo apt update
 sudo apt install -y libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev libxfixes-dev libdrm-dev libx11-dev
 pip3 install mako meson ninja
 
-# NDK r27 太多bug，使用ndk r26d
+# NDK r27 太多bug，使用NDK r26d
 export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk/ndk/26.3.11579264"
 export ANDROID_NDK_HOME="$ANDROID_SDK_ROOT/ndk-bundle"
 
 # 构建 drm
-envsubst <android-${matrix.arch} >build-crossfile-drm
+envsubst <android-${BUILD_ARCH} >build-crossfile-drm
 git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
 cd drm
 meson setup "build-android" \
