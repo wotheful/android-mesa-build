@@ -20,7 +20,8 @@ jobs:
       - name: Install dependencies
         run: |
              sudo apt update
-             sudo apt install -y libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev libxfixes-dev libdrm-dev libx11-dev opencl-headers glslang-tools llvm-18-dev libllvm18 libclc-18-dev
+             wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+             sudo apt-get install -y libxrandr-dev libxxf86vm-dev libxcb-*-dev libx11-xcb-dev libxfixes-dev libdrm-dev libx11-dev opencl-headers glslang-tools llvm-18-dev libllvm18 libclc-18-dev
              pip3 install mako meson ninja
 
       - name: Build
