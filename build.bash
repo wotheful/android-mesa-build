@@ -2,7 +2,7 @@
 set -e
 
 # NDK r27 太多bug，使用NDK r26d
-export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk/ndk/26.3.11579264"
+export ANDROID_NDK_ROOT="/usr/local/lib/android/sdk/ndk/26.3.11579264"
 export ANDROID_NDK_HOME="$ANDROID_SDK_ROOT/ndk-bundle"
 
 # 构建 drm
@@ -52,7 +52,7 @@ meson setup "build-android" \
             -Dosmesa=true \
             -Dxmlconfig=disabled \
             -Dvulkan-drivers= \
-            -Dgallium-drivers=zink \
+            # -Dgallium-drivers=zink \
             # -Dfreedreno-kmds=kgsl,msm \
             -Dshared-glapi=false \
             -Dbuildtype=release
