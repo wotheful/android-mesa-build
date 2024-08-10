@@ -31,7 +31,7 @@ ninja -C "build-android" install
 
 # 构建mesa
 cd ..
-envsubst <android-${{matrix.arch}} >build-crossfile
+envsubst <android-${BUILD_ARCH} >build-crossfile
 git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa
 cd mesa
 #打补丁
