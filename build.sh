@@ -11,7 +11,7 @@ export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk/ndk/26.3.11579264"
 export ANDROID_NDK_HOME="$ANDROID_SDK_ROOT/ndk-bundle"
 
 # 构建 drm
-envsubst <android-${{matrix.arch}} >build-crossfile-drm
+envsubst <android-${matrix.arch} >build-crossfile-drm
 git clone --depth 1 https://gitlab.freedesktop.org/mesa/drm.git
 cd drm
 meson setup "build-android" \
