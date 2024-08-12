@@ -2,6 +2,37 @@ diff --git a/meson.build b/meson.build
 index b2cd74e..299d79d 100644
 --- a/meson.build
 +++ b/meson.build
+@@ -2133,8 +2133,8 @@ with_dri3_modifiers = false
+ with_dri3_explicit_sync = false
+ with_xcb_keysyms = false
+ if with_platform_x11
+-  dep_xcb = dependency('xcb')
+-  dep_xcb_xrandr = dependency('xcb-randr')
++  dep_xcb = dependency('xcb', required : false)
++  dep_xcb_xrandr = dependency('xcb-randr', required : false)
+   if with_glx == 'xlib'
+     dep_x11 = dependency('x11')
+     dep_xext = dependency('xext')
+@@ -2151,16 +2151,16 @@ if with_platform_x11
+   if (with_any_vk or with_glx == 'dri' or with_egl or
+        (with_gallium_vdpau or with_gallium_va or
+         with_gallium_omx != 'disabled'))
+-    dep_xcb = dependency('xcb')
++    dep_xcb = dependency('xcb', required : false)
+     dep_xcb_keysyms = dependency('xcb-keysyms', required : false)
+     with_xcb_keysyms = dep_xcb_keysyms.found()
+     if with_xcb_keysyms
+       pre_args += '-DXCB_KEYSYMS_AVAILABLE'
+     endif
+-    dep_x11_xcb = dependency('x11-xcb')
++    dep_x11_xcb = dependency('x11-xcb', required : false)
+     dep_xcb_dri2 = dependency('xcb-dri2', version : '>= 1.8', required : with_x11_dri2)
+     if with_dri_platform == 'drm' and not dep_libdrm.found()
+-      error('libdrm required for gallium video statetrackers when using x11')
++      warning('libdrm required for gallium video statetrackers when using x11')
+     endif
+   endif
+   if with_any_vk or with_egl or (with_glx == 'dri' and with_dri_platform == 'drm')
 @@ -2069,36 +2069,6 @@ endif
  
  # TODO: symbol mangling
