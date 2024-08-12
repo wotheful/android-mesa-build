@@ -28,7 +28,7 @@ index 0000000..6327281
 --- /dev/null
 +++ b/nativewindow.pc
 @@ -0,0 +1,4 @@
-+	Name: nativewindow
++Name: nativewindow
 +Description: Android libnativewindow library
 +Version: 1.0
 +Libs:
