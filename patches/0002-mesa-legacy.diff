@@ -56,18 +56,6 @@ index 0e3f27b..03781da 100644
 +    ]
    )
  endif
-diff --git a/src/gallium/auxiliary/target-helpers/inline_sw_helper.h b/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
-index 1937459..36dd74e 100644
---- a/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
-+++ b/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
-@@ -31,6 +31,7 @@
- 
- #ifdef GALLIUM_ZINK
- #include "zink/zink_public.h"
-+struct pipe_screen *zink_create_screen(struct sw_winsys *winsys);
- #endif
- 
- static inline struct pipe_screen *
 diff --git a/src/gallium/drivers/zink/zink_instance.py b/src/gallium/drivers/zink/zink_instance.py
 index 03e8d68..8ad2b2d 100644
 --- a/src/gallium/drivers/zink/zink_instance.py
