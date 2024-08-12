@@ -2,15 +2,25 @@ diff --git a/meson.build b/meson.build
 index b2cd74e..299d79d 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -2070,7 +2070,7 @@ endif
+@@ -2069,17 +2069,7 @@ endif
+ 
  # TODO: symbol mangling
  
- if with_platform_wayland
+-if with_platform_wayland
 -  dep_wl_scanner = dependency('wayland-scanner', native: true)
-+  dep_wl_scanner = find_program('wayland-scanner', required : false, native: true)
-   prog_wl_scanner = find_program(dep_wl_scanner.get_variable(pkgconfig : 'wayland_scanner'))
-   if dep_wl_scanner.version().version_compare('>= 1.15')
-     wl_scanner_arg = 'private-code'
+-  prog_wl_scanner = find_program(dep_wl_scanner.get_variable(pkgconfig : 'wayland_scanner'))
+-  if dep_wl_scanner.version().version_compare('>= 1.15')
+-    wl_scanner_arg = 'private-code'
+-  else
+-    wl_scanner_arg = 'code'
+-  endif
+-  dep_wl_protocols = dependency('wayland-protocols', version : '>= 1.34')
+-  dep_wayland_client = dependency('wayland-client', version : '>=1.18')
+-  dep_wayland_server = dependency('wayland-server', version : '>=1.18')
++  wl_scanner_arg = 'code'
+   if with_egl
+     dep_wayland_egl = dependency('wayland-egl-backend', version : '>= 3')
+     dep_wayland_egl_headers = dep_wayland_egl.partial_dependency(compile_args : true)
 @@ -883,7 +883,7 @@ with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi or with_as
  
  dep_clc = null_dep
