@@ -52,8 +52,7 @@ meson setup "build-android" \
             -Dopengl=true \
             -Dosmesa=true \
             -Dvulkan-drivers= \
-            -Dgallium-drivers=zink \
+            -Dgallium-drivers=zink
             # -Dfreedreno-kmds=kgsl,msm \
-            -Dbuildtype=release
 ninja -C "build-android" install
 cp /tmp/mesa/lib/libOSMesa.so.8.0.0 /tmp/mesa/lib/libOSMesa_8.so
