@@ -2,6 +2,15 @@ diff --git a/meson.build b/meson.build
 index b2cd74e..299d79d 100644
 --- a/meson.build
 +++ b/meson.build
+@@ -2070,7 +2070,7 @@ endif
+ # TODO: symbol mangling
+ 
+ if with_platform_wayland
+-  dep_wl_scanner = dependency('wayland-scanner', native: true)
++  dep_wl_scanner = find_program('wayland-scanner', required : false, native: true)
+   prog_wl_scanner = find_program(dep_wl_scanner.get_variable(pkgconfig : 'wayland_scanner'))
+   if dep_wl_scanner.version().version_compare('>= 1.15')
+     wl_scanner_arg = 'private-code'
 @@ -883,7 +883,7 @@ with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi or with_as
  
  dep_clc = null_dep
