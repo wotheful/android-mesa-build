@@ -36,7 +36,7 @@ find ../patches -name "*.diff" -print0 | xargs -0 -I {} sh -c 'echo "Applying {}
 meson setup "build-android" \
             --prefix=/tmp/mesa \
             --cross-file "../build-crossfile" \
-            -Dcpp_rtti=false
+            -Dcpp_rtti=false \
             -Dplatforms=android \
             -Dplatform-sdk-version=24 \
             -Dandroid-stub=true \
