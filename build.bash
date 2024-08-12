@@ -30,6 +30,7 @@ envsubst <android-${BUILD_ARCH} >build-crossfile
 git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa
 cd mesa
 #打补丁
+git reset --hard
 git apply --reject --whitespace=fix ../patches/0001-mesa-zink-PojavTeam.diff || echo "git apply failed"
 git apply --reject --whitespace=fix ../patches/0002-mesa-legacy.diff || echo "git apply failed"
 git apply --reject --whitespace=fix ../patches/0003-mesa-termux-package.diff || echo "git apply failed"
