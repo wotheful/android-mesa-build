@@ -24,23 +24,6 @@ meson setup "build-android" \
             -Dfreedreno-kgsl=false
 ninja -C "build-android" install
 
-#构建libclc
-wget https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.0-rc2/libclc-19.1.0-rc2.src.tar.xz
-tar xf libclc-19.1.0-rc2.src.tar.xz
-cd libclc-19.1.0-rc2*
-cmake_build () {
-  ANDROID_ABI=$1
-  mkdir -p build-$ANDROID_ABI
-  cd build-$ANDROID_ABI
-  cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=release -DANDROID_PLATFORM=24 -DANDROID_ABI=$ANDROID_ABI -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake
-  cmake --build . --clean-first
-  # | echo "Build exit code: $?"
-  # --verbose
-  cd ..
-  cp build-$ANDROID_ABI/* /tmp/drm-static
-}
-cmake_build arm64-v8a
-
 # 构建mesa
 cd ..
 envsubst <android-${BUILD_ARCH} >build-crossfile
