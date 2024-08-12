@@ -149,8 +149,8 @@ index f42f340..3146baf 100644
 -   _mesa_blake3_update(&ctx, build_id_data(note), build_id_len);
 +   if(note != NULL) {
 +	unsigned build_id_len = build_id_length(note);
-+	assert(note && build_id_len == 20); /* sha1 */
-+	_mesa_sha1_update(&ctx, build_id_data(note), build_id_len);
++	assert(note && build_id_len == 20); /* blake3 */
++	_mesa_blake3_update(&ctx, build_id_data(note), build_id_len);
 +   }
  #endif
 @@ -2852,4 +2854,9 @@ init_driver_workarounds(struct zink_screen *screen)
