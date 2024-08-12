@@ -2,6 +2,12 @@ diff --git a/meson.build b/meson.build
 index b2cd74e..299d79d 100644
 --- a/meson.build
 +++ b/meson.build
+@@ -884,5 +884,2 @@
+ dep_clc = null_dep
+-if with_gallium_clover or with_clc
+-  dep_clc = dependency('libclc')
+-endif
+ 
 @@ -2057,6 +2057,3 @@ if dep_unwind.found() 
  if with_osmesa
 -  if not with_gallium_swrast
