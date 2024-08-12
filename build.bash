@@ -31,7 +31,7 @@ git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa
 cd mesa
 #打补丁
 git reset --hard
-find ./patches -name "*.diff" -print0 | xargs -0 -I {} sh -c 'echo "Applying {}" && git apply  --reject --whitespace=fix {} || echo "git apply failed"' 
+find ../patches -name "*.diff" -print0 | xargs -0 -I {} sh -c 'echo "Applying {}" && git apply  --reject --whitespace=fix {} || echo "git apply failed"' 
 #打补丁
 meson setup "build-android" \
             --prefix=/tmp/mesa \
