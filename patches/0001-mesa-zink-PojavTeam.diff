@@ -2,6 +2,27 @@ diff --git a/meson.build b/meson.build
 index b2cd74e..299d79d 100644
 --- a/meson.build
 +++ b/meson.build
+@@ -883,7 +883,7 @@ with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi or with_as
+ 
+ dep_clc = null_dep
+ if with_gallium_clover or with_clc
+-  dep_clc = dependency('libclc')
++  dep_clc = find_program('libclc', required : false)
+ endif
+ 
+ gl_pkgconfig_c_flags = []
+@@ -1904,9 +1904,9 @@ if with_clover_spirv or with_clc
+     '>= @0@.@1@'.format(chosen_llvm_version_major, chosen_llvm_version_minor),
+     '< @0@.@1@'.format(chosen_llvm_version_major, chosen_llvm_version_minor + 1) ]
+ 
+-  dep_spirv_tools = dependency('SPIRV-Tools', required : true, version : '>= 2018.0')
++  dep_spirv_tools = find_program('SPIRV-Tools', required : false, version : '>= 2018.0')
+   # LLVMSPIRVLib is available at https://github.com/KhronosGroup/SPIRV-LLVM-Translator
+-  dep_llvmspirvlib = dependency('LLVMSPIRVLib', required : true, version : _llvmspirvlib_version)
++  dep_llvmspirvlib = find_program('LLVMSPIRVLib', required : false)
+ else
+   dep_spirv_tools = null_dep
+   dep_llvmspirvlib = null_dep
 @@ -2057,6 +2057,3 @@ if dep_unwind.found() 
  if with_osmesa
 -  if not with_gallium_swrast
