@@ -1,0 +1,374 @@
+diff --git a/mesa/src/gallium/auxiliary/target-helpers/inline_sw_helper.h b/mesa1/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
+index ddb67b3..ada86a7 100644
+--- a/mesa/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
++++ b/mesa1/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
+@@ -8,6 +8,10 @@
+ #include "frontend/sw_winsys.h"
+ #include "target-helpers/inline_debug_helper.h"
+ 
++#include <stdio.h>
++#include <fcntl.h>
++#include <errno.h>
++
+ /* Helper function to choose and instantiate one of the software rasterizers:
+  * llvmpipe, softpipe.
+  */
+diff --git a/mesa/src/gallium/drivers/zink/zink_bo.c b/mesa1/src/gallium/drivers/zink/zink_bo.c
+index 97c8229..c74d22c 100644
+--- a/mesa/src/gallium/drivers/zink/zink_bo.c
++++ b/mesa1/src/gallium/drivers/zink/zink_bo.c
+@@ -35,7 +35,7 @@
+ #include "zink_screen.h"
+ #include "util/u_hash_table.h"
+ 
+-#if !defined(__APPLE__) && !defined(_WIN32)
++#if !defined(__APPLE__) && !defined(_WIN32) && !defined(__ANDROID__)
+ #define ZINK_USE_DMABUF
+ #include <xf86drm.h>
+ #endif
+diff --git a/mesa/src/gallium/drivers/zink/zink_screen.c b/mesa1/src/gallium/drivers/zink/zink_screen.c
+index ed2c3b2..c1e2712 100644
+--- a/mesa/src/gallium/drivers/zink/zink_screen.c
++++ b/mesa1/src/gallium/drivers/zink/zink_screen.c
+@@ -279,9 +279,11 @@ disk_cache_init(struct zink_screen *screen)
+    /* Hash in the zink driver build. */
+    const struct build_id_note *note =
+        build_id_find_nhdr_for_addr(disk_cache_init);
++   if (note != NULL) {
+    unsigned build_id_len = build_id_length(note);
+    assert(note && build_id_len == 20); /* blake3 */
+    _mesa_blake3_update(&ctx, build_id_data(note), build_id_len);
++   }
+ #endif
+ 
+    /* Hash in the Vulkan pipeline cache UUID to identify the combination of
+@@ -2820,6 +2815,7 @@ init_driver_workarounds(struct zink_screen *screen)
+    case VK_DRIVER_ID_MESA_TURNIP:
+    case VK_DRIVER_ID_MESA_V3DV:
+    case VK_DRIVER_ID_MESA_PANVK:
++   case VK_DRIVER_ID_MESA_NVK:
+       screen->driver_workarounds.implicit_sync = false;
+       break;
+    default:
+@@ -3264,7 +3260,7 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
+ 
+    struct zink_screen *screen = rzalloc(NULL, struct zink_screen);
+    if (!screen) {
+-      if (!config || !config->driver_name_is_inferred)
++      if (!config)
+          mesa_loge("ZINK: failed to allocate screen");
+       return NULL;
+    }
+@@ -3287,7 +3283,7 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
+ 
+    u_trace_state_init();
+ 
+-   screen->loader_lib = util_dl_open(VK_LIBNAME);
++   screen->loader_lib = (void*) strtoul(getenv("VULKAN_PTR"), NULL, 0x10);
+    if (!screen->loader_lib) {
+       if (!screen->driver_name_is_inferred)
+          mesa_loge("ZINK: failed to load "VK_LIBNAME);
+@@ -3304,14 +3300,6 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
+    }
+ 
+    screen->instance_info.loader_version = zink_get_loader_version(screen);
+-   if (config) {
+-      driParseConfigFiles(config->options, config->options_info, 0, "zink",
+-                          NULL, NULL, NULL, 0, NULL, 0);
+-      screen->driconf.dual_color_blend_by_location = driQueryOptionb(config->options, "dual_color_blend_by_location");
+-      //screen->driconf.inline_uniforms = driQueryOptionb(config->options, "radeonsi_inline_uniforms");
+-      screen->driconf.emulate_point_smooth = driQueryOptionb(config->options, "zink_emulate_point_smooth");
+-      screen->driconf.zink_shader_object_enable = driQueryOptionb(config->options, "zink_shader_object_enable");
+-   }
+ 
+    if (!zink_create_instance(screen, dev_major > 0 && dev_major < 255))
+       goto fail;
+diff --git a/mesa/src/gallium/targets/osmesa/meson.build b/mesa1/src/gallium/targets/osmesa/meson.build
+index 55befd2..8a1caad 100644
+--- a/mesa/src/gallium/targets/osmesa/meson.build
++++ b/mesa1/src/gallium/targets/osmesa/meson.build
+@@ -38,10 +38,10 @@ libosmesa = shared_library(
+     libmesa, libgallium, libws_null, osmesa_link_with,
+   ],
+   dependencies : [
+-    dep_ws2_32, dep_selinux, dep_thread, dep_clock, dep_unwind, driver_swrast, idep_mesautil,
++    dep_ws2_32, dep_selinux, dep_thread, dep_clock, dep_unwind, driver_swrast, idep_mesautil, driver_zink, dep_libdrm
+   ],
+   name_prefix : host_machine.system() == 'windows' ? '' : [],  # otherwise mingw will create libosmesa.dll
+-  soversion : host_machine.system() == 'windows' ? '' : '8',
++  soversion : '',
+   version : '8.0.0',
+   darwin_versions : '9.0.0',
+   install : true,
+diff --git a/mesa/src/util/os_misc.c b/mesa1/src/util/os_misc.c
+index f529318..bbcf74a 100644
+--- a/mesa/src/util/os_misc.c
++++ b/mesa1/src/util/os_misc.c
+@@ -56,7 +56,6 @@
+ #  define LOG_TAG "MESA"
+ #  include <unistd.h>
+ #  include <log/log.h>
+-#  include <cutils/properties.h>
+ #elif DETECT_OS_LINUX || DETECT_OS_CYGWIN || DETECT_OS_SOLARIS || DETECT_OS_HURD || DETECT_OS_MANAGARM
+ #  include <unistd.h>
+ #elif DETECT_OS_OPENBSD || DETECT_OS_FREEBSD
+@@ -136,53 +135,6 @@ os_log_message(const char *message)
+ #endif
+ }
+ 
+-#if DETECT_OS_ANDROID
+-#  include <ctype.h>
+-#  include "c11/threads.h"
+-
+-/**
+- * Get an option value from android's property system, as a fallback to
+- * getenv() (which is generally less useful on android due to processes
+- * typically being forked from the zygote.
+- *
+- * The option name used for getenv is translated into a property name
+- * by:
+- *
+- *  1) convert to lowercase
+- *  2) replace '_' with '.'
+- *  3) if necessary, prepend "mesa."
+- *
+- * For example:
+- *  - MESA_EXTENSION_OVERRIDE -> mesa.extension.override
+- *  - GALLIUM_HUD -> mesa.gallium.hud
+- *
+- */
+-static char *
+-os_get_android_option(const char *name)
+-{
+-   static thread_local char os_android_option_value[PROPERTY_VALUE_MAX];
+-   char key[PROPERTY_KEY_MAX];
+-   char *p = key, *end = key + PROPERTY_KEY_MAX;
+-   /* add "mesa." prefix if necessary: */
+-   if (strstr(name, "MESA_") != name)
+-      p += strlcpy(p, "mesa.", end - p);
+-   p += strlcpy(p, name, end - p);
+-   for (int i = 0; key[i]; i++) {
+-      if (key[i] == '_') {
+-         key[i] = '.';
+-      } else {
+-         key[i] = tolower(key[i]);
+-      }
+-   }
+-
+-   int len = property_get(key, os_android_option_value, NULL);
+-   if (len > 1) {
+-      return os_android_option_value;
+-   }
+-   return NULL;
+-}
+-#endif
+-
+ #if DETECT_OS_WINDOWS
+ 
+ /* getenv doesn't necessarily reflect changes to the environment
+@@ -203,11 +155,6 @@ const char *
+ os_get_option(const char *name)
+ {
+    const char *opt = getenv(name);
+-#if DETECT_OS_ANDROID
+-   if (!opt) {
+-      opt = os_get_android_option(name);
+-   }
+-#endif
+    return opt;
+ }
+ 
+diff --git a/mesa/src/util/perf/cpu_trace.h b/mesa1/src/util/perf/cpu_trace.h
+index b72218d..9567003 100644
+--- a/mesa/src/util/perf/cpu_trace.h
++++ b/mesa1/src/util/perf/cpu_trace.h
+@@ -9,6 +9,8 @@
+ #include "u_perfetto.h"
+ #include "u_gpuvis.h"
+ 
++#include "util/detect_os.h"
++
+ #include "util/detect_os.h"
+ #include "util/macros.h"
+ 
+@@ -52,24 +54,6 @@
+       if (unlikely(util_perfetto_is_tracing_enabled()))                      \
+          util_perfetto_trace_full_end(name, track_id, timestamp);            \
+    } while (0)
+-
+-/* NOTE: for now disable atrace for C++ to workaround a ndk bug with ordering
+- * between stdatomic.h and atomic.h.  See:
+- *
+- *   https://github.com/android/ndk/issues/1178
+- */
+-#elif DETECT_OS_ANDROID && !defined(__cplusplus)
+-
+-#include <cutils/trace.h>
+-
+-#define _MESA_TRACE_BEGIN(name)                                              \
+-   atrace_begin(ATRACE_TAG_GRAPHICS, name)
+-#define _MESA_TRACE_END() atrace_end(ATRACE_TAG_GRAPHICS)
+-#define _MESA_TRACE_FLOW_BEGIN(name, id)                                     \
+-   atrace_begin(ATRACE_TAG_GRAPHICS, name)
+-#define _MESA_TRACE_SET_COUNTER(name, value)
+-#define _MESA_TRACE_TIMESTAMP_BEGIN(name, track_id, flow_id, timestamp)
+-#define _MESA_TRACE_TIMESTAMP_END(name, track_id, timestamp)
+ #else
+ 
+ #define _MESA_TRACE_BEGIN(name)
+diff --git a/mesa/src/util/u_debug_stack_android.cpp b/mesa/src/util/u_debug_stack_android.cpp
+deleted file mode 100644
+index 4481771..0000000
+--- a/mesa/src/util/u_debug_stack_android.cpp
++++ /dev/null
+@@ -1,149 +0,0 @@
+-/*
+- * Copyright (C) 2018 Stefan Schake <stschake@gmail.com>
+- *
+- * Permission is hereby granted, free of charge, to any person obtaining a
+- * copy of this software and associated documentation files (the "Software"),
+- * to deal in the Software without restriction, including without limitation
+- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+- * and/or sell copies of the Software, and to permit persons to whom the
+- * Software is furnished to do so, subject to the following conditions:
+- *
+- * The above copyright notice and this permission notice (including the next
+- * paragraph) shall be included in all copies or substantial portions of the
+- * Software.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+- * IN THE SOFTWARE.
+- */
+-
+-#include "u_debug_stack.h"
+-
+-#if WITH_LIBBACKTRACE
+-
+-#include <backtrace/Backtrace.h>
+-
+-#include "util/simple_mtx.h"
+-#include "util/u_debug.h"
+-#include "util/hash_table.h"
+-#include "util/u_thread.h"
+-
+-static hash_table *symbol_table;
+-static simple_mtx_t table_mutex = SIMPLE_MTX_INITIALIZER;
+-
+-static const char *
+-intern_symbol(const char *symbol)
+-{
+-   if (!symbol_table)
+-      symbol_table = _mesa_hash_table_create(NULL, NULL, _mesa_key_string_equal);
+-
+-   uint32_t hash = _mesa_hash_string(symbol);
+-   hash_entry *entry =
+-      _mesa_hash_table_search_pre_hashed(symbol_table, hash, symbol);
+-   if (!entry)
+-      entry = _mesa_hash_table_insert_pre_hashed(symbol_table, hash, symbol, strdup(symbol));
+-
+-   return (const char *) entry->data;
+-}
+-
+-void
+-debug_backtrace_capture(debug_stack_frame *backtrace,
+-                        unsigned start_frame,
+-                        unsigned nr_frames)
+-{
+-   Backtrace *bt;
+-
+-   if (!nr_frames)
+-      return;
+-
+-   bt = Backtrace::Create(BACKTRACE_CURRENT_PROCESS,
+-                          BACKTRACE_CURRENT_THREAD);
+-   if (bt == NULL) {
+-      for (unsigned i = 0; i < nr_frames; i++)
+-         backtrace[i].procname = NULL;
+-      return;
+-   }
+-
+-   /* Add one to exclude this call. Unwind already ignores itself. */
+-   bt->Unwind(start_frame + 1);
+-
+-   simple_mtx_lock(&table_mutex);
+-
+-   for (unsigned i = 0; i < nr_frames; i++) {
+-      const backtrace_frame_data_t* frame = bt->GetFrame(i);
+-      if (frame) {
+-         backtrace[i].procname = intern_symbol(frame->func_name.c_str());
+-         backtrace[i].start_ip = frame->pc;
+-         backtrace[i].off = frame->func_offset;
+-         backtrace[i].map = intern_symbol(frame->map.Name().c_str());
+-         backtrace[i].map_off = frame->rel_pc;
+-      } else {
+-         backtrace[i].procname = NULL;
+-      }
+-   }
+-
+-   simple_mtx_unlock(&table_mutex);
+-
+-   delete bt;
+-}
+-
+-void
+-debug_backtrace_dump(const debug_stack_frame *backtrace,
+-                     unsigned nr_frames)
+-{
+-   for (unsigned i = 0; i < nr_frames; i++) {
+-      if (backtrace[i].procname)
+-         debug_printf(
+-            "%s(+0x%x)\t%012" PRIx64 ": %s+0x%x\n",
+-            backtrace[i].map,
+-            backtrace[i].map_off,
+-            backtrace[i].start_ip,
+-            backtrace[i].procname,
+-            backtrace[i].off);
+-   }
+-}
+-
+-void
+-debug_backtrace_print(FILE *f,
+-                      const debug_stack_frame *backtrace,
+-                      unsigned nr_frames)
+-{
+-   for (unsigned i = 0; i < nr_frames; i++) {
+-      if (backtrace[i].procname)
+-         fprintf(f,
+-                 "%s(+0x%x)\t%012" PRIx64 ": %s+0x%x\n",
+-                 backtrace[i].map,
+-                 backtrace[i].map_off,
+-                 backtrace[i].start_ip,
+-                 backtrace[i].procname,
+-                 backtrace[i].off);
+-   }
+-}
+-
+-#else
+-
+-void
+-debug_backtrace_capture(debug_stack_frame *backtrace,
+-                        unsigned start_frame,
+-                        unsigned nr_frames)
+-{
+-}
+-
+-void
+-debug_backtrace_dump(const debug_stack_frame *backtrace,
+-                     unsigned nr_frames)
+-{
+-}
+-
+-void
+-debug_backtrace_print(FILE *f,
+-                      const debug_stack_frame *backtrace,
+-                      unsigned nr_frames)
+-{
+-}
+-
+-#endif // WITH_LIBBACKTRACE
+\ No newline at end of file
