@@ -58,7 +58,7 @@ diff --git a/src/util/meson.build b/src/util/meson.build
 index adc3298..545992f 100644
 --- a/src/util/meson.build
 +++ b/src/util/meson.build
-@@ -451,3 +451,51 @@ if with_tests
+@@ -451,3 +451,20 @@ if with_tests
    subdir('tests/vma')
    subdir('tests/format')
  endif
