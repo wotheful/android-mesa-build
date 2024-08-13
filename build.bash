@@ -39,7 +39,6 @@ git apply --reject --whitespace=fix ../patches/0004-梓之果冻.diff || echo "g
 meson setup "build-android" \
             --prefix=/tmp/mesa \
             --cross-file "../build-crossfile" \
-            -Dcpp_rtti=false \
             -Dplatforms=android \
             -Dplatform-sdk-version=24 \
             -Dandroid-stub=true \
