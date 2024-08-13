@@ -7,7 +7,6 @@ cpp_ld = 'lld'
 nm = '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-nm'
 llvm-config = '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-config'
 strip = '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip'
-cmake = '$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake'
 # Android doesn't come with a pkg-config, but we need one for meson to be happy not
 # finding all the optional deps it looks for.  Use system pkg-config pointing at a
 # directory we get to populate with any .pc files we want to add for Android
@@ -16,6 +15,7 @@ cmake = '$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake'
 # interacting with the panfrost DRM module and not kbase
 
 pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.:/tmp/drm-static/lib/pkgconfig', '/usr/bin/pkg-config']
+cmake = ['env', 'CMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake', '/usr/bin/cmake']
 
 [host_machine]
 system = 'linux'
