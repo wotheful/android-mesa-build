@@ -14,7 +14,6 @@ strip = '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip'
 # interacting with the panfrost DRM module and not kbase
 
 pkgconfig = ['env', 'PKG_CONFIG_LIBDIR=.', '/usr/bin/pkg-config']
-cmake = '/usr/bin/cmake'
 
 [host_machine]
 system = 'linux'
