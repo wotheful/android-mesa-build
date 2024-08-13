@@ -1,0 +1,64 @@
+diff --git a/meson.build b/meson.build
+index b2cd74e..299d79d 100644
+--- a/meson.build
++++ b/meson.build
+@@ -2133,8 +2133,8 @@ with_dri3_modifiers = false
+ with_dri3_explicit_sync = false
+ with_xcb_keysyms = false
+ if with_platform_x11
+-  dep_xcb = dependency('xcb')
+-  dep_xcb_xrandr = dependency('xcb-randr')
++  dep_xcb = dependency('xcb', required : false)
++  dep_xcb_xrandr = dependency('xcb-randr', required : false)
+   if with_glx == 'xlib'
+     dep_x11 = dependency('x11')
+     dep_xext = dependency('xext')
+@@ -2151,16 +2151,16 @@ if with_platform_x11
+   if (with_any_vk or with_glx == 'dri' or with_egl or
+        (with_gallium_vdpau or with_gallium_va or
+         with_gallium_omx != 'disabled'))
+-    dep_xcb = dependency('xcb')
++    dep_xcb = dependency('xcb', required : false)
+     dep_xcb_keysyms = dependency('xcb-keysyms', required : false)
+     with_xcb_keysyms = dep_xcb_keysyms.found()
+     if with_xcb_keysyms
+       pre_args += '-DXCB_KEYSYMS_AVAILABLE'
+     endif
+-    dep_x11_xcb = dependency('x11-xcb')
++    dep_x11_xcb = dependency('x11-xcb', required : false)
+     dep_xcb_dri2 = dependency('xcb-dri2', version : '>= 1.8', required : with_x11_dri2)
+     if with_dri_platform == 'drm' and not dep_libdrm.found()
+-      error('libdrm required for gallium video statetrackers when using x11')
++      warning('libdrm required for gallium video statetrackers when using x11')
+     endif
+   endif
+   if with_any_vk or with_egl or (with_glx == 'dri' and with_dri_platform == 'drm')
+@@ -883,7 +883,7 @@ with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi or with_as
+ 
+ dep_clc = null_dep
+ if with_gallium_clover or with_clc
+-  dep_clc = dependency('libclc')
++  dep_clc = find_program('libclc', required : false)
+ endif
+ 
+ gl_pkgconfig_c_flags = []
+@@ -1904,9 +1904,9 @@ if with_clover_spirv or with_clc
+     '>= @0@.@1@'.format(chosen_llvm_version_major, chosen_llvm_version_minor),
+     '< @0@.@1@'.format(chosen_llvm_version_major, chosen_llvm_version_minor + 1) ]
+ 
+-  dep_spirv_tools = dependency('SPIRV-Tools', required : true, version : '>= 2018.0')
++  dep_spirv_tools = dependency('SPIRV-Tools', required : false, version : '>= 2018.0')
+   # LLVMSPIRVLib is available at https://github.com/KhronosGroup/SPIRV-LLVM-Translator
+-  dep_llvmspirvlib = dependency('LLVMSPIRVLib', required : true, version : _llvmspirvlib_version)
++  dep_llvmspirvlib = dependency('LLVMSPIRVLib', required : false, version : _llvmspirvlib_version)
+ else
+   dep_spirv_tools = null_dep
+   dep_llvmspirvlib = null_dep
+diff --git a/src/android_stub/meson.build b/src/android_stub/meson.build
+index 6097ae8..0e3f27b 100644
+--- a/src/android_stub/meson.build
++++ b/src/android_stub/meson.build
+@@ -232,3 +232,2 @@
+   deps_for_libmesa_util += dep_android
+-  files_debug_stack = files('u_debug_stack_android.cpp')
+ else
