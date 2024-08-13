@@ -62,3 +62,4 @@ index 6097ae8..0e3f27b 100644
    deps_for_libmesa_util += dep_android
 -  files_debug_stack = files('u_debug_stack_android.cpp')
  else
+ 
