@@ -1,7 +1,7 @@
-diff --git a/mesa/src/gallium/auxiliary/target-helpers/inline_sw_helper.h b/mesa1/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
+diff --git a/src/gallium/auxiliary/target-helpers/inline_sw_helper.h b/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
 index ddb67b3..ada86a7 100644
---- a/mesa/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
-+++ b/mesa1/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
+--- a/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
++++ b/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
 @@ -8,6 +8,10 @@
  #include "frontend/sw_winsys.h"
  #include "target-helpers/inline_debug_helper.h"
@@ -13,10 +13,10 @@ index ddb67b3..ada86a7 100644
  /* Helper function to choose and instantiate one of the software rasterizers:
   * llvmpipe, softpipe.
   */
-diff --git a/mesa/src/gallium/drivers/zink/zink_screen.c b/mesa1/src/gallium/drivers/zink/zink_screen.c
+diff --git a/src/gallium/drivers/zink/zink_screen.c b/src/gallium/drivers/zink/zink_screen.c
 index ed2c3b2..c1e2712 100644
---- a/mesa/src/gallium/drivers/zink/zink_screen.c
-+++ b/mesa1/src/gallium/drivers/zink/zink_screen.c
+--- a/src/gallium/drivers/zink/zink_screen.c
++++ b/src/gallium/drivers/zink/zink_screen.c
 @@ -2820,6 +2815,7 @@ init_driver_workarounds(struct zink_screen *screen)
     case VK_DRIVER_ID_MESA_TURNIP:
     case VK_DRIVER_ID_MESA_V3DV:
@@ -49,10 +49,10 @@ index ed2c3b2..c1e2712 100644
  
     if (!zink_create_instance(screen, dev_major > 0 && dev_major < 255))
        goto fail;
-diff --git a/mesa/src/gallium/targets/osmesa/meson.build b/mesa1/src/gallium/targets/osmesa/meson.build
+diff --git a/src/gallium/targets/osmesa/meson.build b/src/gallium/targets/osmesa/meson.build
 index 55befd2..8a1caad 100644
---- a/mesa/src/gallium/targets/osmesa/meson.build
-+++ b/mesa1/src/gallium/targets/osmesa/meson.build
+--- a/src/gallium/targets/osmesa/meson.build
++++ b/src/gallium/targets/osmesa/meson.build
 @@ -38,10 +38,10 @@ libosmesa = shared_library(
      libmesa, libgallium, libws_null, osmesa_link_with,
    ],
@@ -66,10 +66,10 @@ index 55befd2..8a1caad 100644
    version : '8.0.0',
    darwin_versions : '9.0.0',
    install : true,
-diff --git a/mesa/src/util/os_misc.c b/mesa1/src/util/os_misc.c
+diff --git a/src/util/os_misc.c b/src/util/os_misc.c
 index f529318..bbcf74a 100644
---- a/mesa/src/util/os_misc.c
-+++ b/mesa1/src/util/os_misc.c
+--- a/src/util/os_misc.c
++++ b/src/util/os_misc.c
 @@ -56,7 +56,6 @@
  #  define LOG_TAG "MESA"
  #  include <unistd.h>
@@ -144,10 +144,10 @@ index f529318..bbcf74a 100644
     return opt;
  }
  
-diff --git a/mesa/src/util/perf/cpu_trace.h b/mesa1/src/util/perf/cpu_trace.h
+diff --git a/src/util/perf/cpu_trace.h b/src/util/perf/cpu_trace.h
 index b72218d..9567003 100644
---- a/mesa/src/util/perf/cpu_trace.h
-+++ b/mesa1/src/util/perf/cpu_trace.h
+--- a/src/util/perf/cpu_trace.h
++++ b/src/util/perf/cpu_trace.h
 @@ -9,6 +9,8 @@
  #include "u_perfetto.h"
  #include "u_gpuvis.h"
@@ -182,10 +182,10 @@ index b72218d..9567003 100644
  #else
  
  #define _MESA_TRACE_BEGIN(name)
-diff --git a/mesa/src/util/u_debug_stack_android.cpp b/mesa/src/util/u_debug_stack_android.cpp
+diff --git a/src/util/u_debug_stack_android.cpp b/mesa/src/util/u_debug_stack_android.cpp
 deleted file mode 100644
 index 4481771..0000000
---- a/mesa/src/util/u_debug_stack_android.cpp
+--- a/src/util/u_debug_stack_android.cpp
 +++ /dev/null
 @@ -1,149 +0,0 @@
 -/*
