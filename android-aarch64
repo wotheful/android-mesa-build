@@ -1,7 +1,7 @@
 [binaries]
 ar = '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar'
-c = ['ccache', '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-mllvm', '-polly', '-flto=auto', '-DANDROID', '-Dblake3_hash_many_neon']
-cpp = ['ccache', '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-fno-exceptions', '-fno-unwind-tables', '-fno-asynchronous-unwind-tables', '-static-libstdc++', '-DANDROID', '-Dblake3_hash_many_neon']
+c = ['ccache', '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-mllvm', '-polly', '-flto=auto', '-DANDROID']
+cpp = ['ccache', '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++', '-O3', '-DVK_USE_PLATFORM_ANDROID_KHR', '-fPIC', '-fno-exceptions', '-fno-unwind-tables', '-fno-asynchronous-unwind-tables', '-static-libstdc++', '-DANDROID']
 c_ld = 'lld'
 cpp_ld = 'lld'
 nm = '$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-nm'
