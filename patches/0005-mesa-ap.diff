@@ -54,11 +54,3 @@ index b2cd74e..299d79d 100644
  else
    dep_spirv_tools = null_dep
    dep_llvmspirvlib = null_dep
-diff --git a/src/android_stub/meson.build b/src/android_stub/meson.build
-index 6097ae8..0e3f27b 100644
---- a/src/util/meson.build
-+++ b/src/util/meson.build
-@@ -232,3 +232,2 @@
-   deps_for_libmesa_util += dep_android
--  files_debug_stack = files('u_debug_stack_android.cpp')
- else
