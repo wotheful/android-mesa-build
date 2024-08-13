@@ -76,7 +76,7 @@ index adc3298..545992f 100644
 +cpu = host_machine.cpu()
 +
 +blake3_x86_no_simd_defs = ['-DBLAKE3_NO_SSE2', '-DBLAKE3_NO_SSE41', '-DBLAKE3_NO_AVX2', '-DBLAKE3_NO_AVX512']
-++if cpu_family == 'x86_64'
+++if cpu == 'x86_64'
 +  if is_windows
 +    if is_msvc
 +      # An up-to-date version of Meson, not using the VS backend is needed.
