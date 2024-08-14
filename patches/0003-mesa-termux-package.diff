@@ -354,38 +354,13 @@ index e1a182c..8fd0e28 100644
     struct zink_context *ctx = zink_context(pctx);
  
     /* if the surface is no longer a swapchain, this is a no-op */
-@@ -1869,6 +1872,34 @@ zink_flush_frontbuffer(struct pipe_screen *pscreen,
+@@ -1869,6 +1872,9 @@ zink_flush_frontbuffer(struct pipe_screen *pscreen,
     /* always verify that this was acquired */
     assert(zink_kopper_acquired(res->obj->dt, res->obj->dt_idx));
     zink_kopper_present_queue(screen, res, nboxes, sub_box);
 +#endif
 +
 +   struct sw_winsys *winsys = screen->winsys;
-+
-+   if (!winsys)
-+     return;
-+   void *map = winsys->displaytarget_map(winsys, res->dt, 0);
-+
-+   if (map) {
-+      struct pipe_transfer *transfer = NULL;
-+
-+      // Context hack
-+      pctx = zink_xlib_context;
-+
-+      void *res_map = pipe_texture_map(pctx, pres, level, layer, PIPE_MAP_READ, 0, 0,
-+                                        u_minify(pres->width0, level),
-+                                        u_minify(pres->height0, level),
-+                                        &transfer);
-+      if (res_map) {
-+         util_copy_rect((ubyte*)map, pres->format, res->dt_stride, 0, 0,
-+                        transfer->box.width, transfer->box.height,
-+                        (const ubyte*)res_map, transfer->stride, 0, 0);
-+         pipe_texture_unmap(pctx, transfer);
-+      }
-+      winsys->displaytarget_unmap(winsys, res->dt);
-+   }
-+
-+   winsys->displaytarget_display(winsys, res->dt, winsys_drawable_handle, sub_box);
  }
  
  bool
