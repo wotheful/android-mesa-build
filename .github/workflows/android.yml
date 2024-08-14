@@ -33,4 +33,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: libOSMesa_${{matrix.arch}}
-          path: /tmp/mesa/lib/libOSMesa_8.so
+          path: /tmp/mesa/lib/*
