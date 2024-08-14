@@ -303,5 +303,117 @@
        void *dt_map = vtws->sws->displaytarget_map(vtws->sws, res->dt, PIPE_MAP_READ_WRITE);
        uint32_t shm_stride = util_format_get_stride(res->format, res->width);
        util_copy_rect(res->ptr, res->format, shm_stride, 0, 0,
-
-
+diff --git a/src/gallium/drivers/zink/zink_resource.c b/src/gallium/drivers/zink/zink_resource.c
+index 8fea8b1..fa06dd1 100644
+--- a/src/gallium/drivers/zink/zink_resource.c
++++ b/src/gallium/drivers/zink/zink_resource.c
+@@ -46,6 +46,7 @@
+ #include "util/u_upload_mgr.h"
+ #include "util/os_file.h"
+ #include "frontend/winsys_handle.h"
++#include "frontend/sw_winsys.h"
+ 
+ #if !defined(__APPLE__)
+ #define ZINK_USE_DMABUF
+@@ -1640,6 +1641,17 @@ resource_create(struct pipe_screen *pscreen,
+       res->linear = linear;
+       res->aspect = aspect_from_format(templ->format);
+    }
++   
++   if (screen->winsys && (templ->bind & PIPE_BIND_DISPLAY_TARGET)) {
++      struct sw_winsys *winsys = screen->winsys;
++      res->dt = winsys->displaytarget_create(screen->winsys,
++                                             res->base.b.bind,
++                                             res->base.b.format,
++                                             templ->width0,
++                                             templ->height0,
++                                             64, NULL,
++                                             &res->dt_stride);
++   }
+ 
+    if (loader_private) {
+       if (templ->bind & PIPE_BIND_DISPLAY_TARGET) {
+diff --git a/src/gallium/drivers/zink/zink_screen.c b/src/gallium/drivers/zink/zink_screen.c
+index e1a182c..8fd0e28 100644
+--- a/src/gallium/drivers/zink/zink_screen.c
++++ b/src/gallium/drivers/zink/zink_screen.c
+@@ -50,6 +50,8 @@
+ #include "util/xmlconfig.h"
+ 
+ #include "util/u_cpu_detect.h"
++#include "frontend/sw_winsys.h"
++
+ 
+ #ifdef HAVE_LIBDRM
+ #include <xf86drm.h>
+@@ -1837,6 +1839,7 @@ zink_flush_frontbuffer(struct pipe_screen *pscreen,
+ {
+    struct zink_screen *screen = zink_screen(pscreen);
+    struct zink_resource *res = zink_resource(pres);
++#if 0
+    struct zink_context *ctx = zink_context(pctx);
+ 
+    /* if the surface is no longer a swapchain, this is a no-op */
+@@ -1869,6 +1872,34 @@ zink_flush_frontbuffer(struct pipe_screen *pscreen,
+    /* always verify that this was acquired */
+    assert(zink_kopper_acquired(res->obj->dt, res->obj->dt_idx));
+    zink_kopper_present_queue(screen, res, nboxes, sub_box);
++#endif
++
++   struct sw_winsys *winsys = screen->winsys;
++
++   if (!winsys)
++     return;
++   void *map = winsys->displaytarget_map(winsys, res->dt, 0);
++
++   if (map) {
++      struct pipe_transfer *transfer = NULL;
++
++      // Context hack
++      pctx = zink_xlib_context;
++
++      void *res_map = pipe_texture_map(pctx, pres, level, layer, PIPE_MAP_READ, 0, 0,
++                                        u_minify(pres->width0, level),
++                                        u_minify(pres->height0, level),
++                                        &transfer);
++      if (res_map) {
++         util_copy_rect((ubyte*)map, pres->format, res->dt_stride, 0, 0,
++                        transfer->box.width, transfer->box.height,
++                        (const ubyte*)res_map, transfer->stride, 0, 0);
++         pipe_texture_unmap(pctx, transfer);
++      }
++      winsys->displaytarget_unmap(winsys, res->dt);
++   }
++
++   winsys->displaytarget_display(winsys, res->dt, winsys_drawable_handle, sub_box);
+ }
+ 
+ bool
+@@ -3710,6 +3741,7 @@ zink_create_screen(struct sw_winsys *winsys, const struct pipe_screen_config *co
+ {
+    struct zink_screen *ret = zink_internal_create_screen(config, -1, -1);
+    if (ret) {
++      ret->winsys = winsys;
+       ret->drm_fd = -1;
+    }
+ 
+diff --git a/src/gallium/drivers/zink/zink_types.h b/src/gallium/drivers/zink/zink_types.h
+index e8def6a..a1b51ea 100644
+--- a/src/gallium/drivers/zink/zink_types.h
++++ b/src/gallium/drivers/zink/zink_types.h
+@@ -1349,6 +1349,7 @@ struct zink_resource {
+    bool swapchain;
+    bool dmabuf;
+    unsigned dt_stride;
++   struct sw_displaytarget *dt;
+ 
+    uint8_t modifiers_count;
+    uint64_t *modifiers;
+@@ -1419,6 +1420,7 @@ struct zink_screen {
+ 
+    bool device_lost;
+    int drm_fd;
++   struct sw_winsys *winsys;
+ 
+    struct slab_parent_pool transfer_pool;
+    struct disk_cache *disk_cache;
