@@ -42,6 +42,8 @@ meson setup "build-android" \
             --cross-file "../build-crossfile" \
             -Dplatforms=android \
             -Dplatform-sdk-version=24 \
+            -Dcpp_rtti=false \
+            -Dxmlconfig=disabled \
             -Dandroid-stub=true \
             -Dandroid-libbacktrace=enabled \
             -Dandroid-strict=true \
