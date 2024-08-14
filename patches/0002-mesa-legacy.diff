@@ -74,34 +74,6 @@ index 03e8d68..8ad2b2d 100644
  bool
  zink_create_instance(struct zink_screen *screen, bool display_dev)
  {
-diff --git a/src/gallium/drivers/zink/zink_resource.c b/src/gallium/drivers/zink/zink_resource.c
-index 8fea8b1..8ababf3 100644
---- a/src/gallium/drivers/zink/zink_resource.c
-+++ b/src/gallium/drivers/zink/zink_resource.c
-@@ -51,6 +51,10 @@
- #define ZINK_USE_DMABUF
- #endif
- 
-+#ifdef __ANDROID__
-+#undef ZINK_USE_DMABUF
-+#endif
-+
- #if defined(ZINK_USE_DMABUF) && !defined(_WIN32)
- #include "drm-uapi/drm_fourcc.h"
- #else
-diff --git a/src/gallium/frontends/dri/meson.build b/src/gallium/frontends/dri/meson.build
-index 09da602..67d8111 100644
---- a/src/gallium/frontends/dri/meson.build
-+++ b/src/gallium/frontends/dri/meson.build
-@@ -46,7 +46,7 @@ endif
- 
- libdri = static_library(
-   'dri',
--  [ files_libdri, sha1_h ],
-+  [ with_platform_android ? [] : files_libdri, sha1_h ],
-   include_directories : [
-     inc_include, inc_util, inc_mesa, inc_mapi, inc_src, inc_gallium,
-     inc_gallium_aux, inc_util, inc_gallium_drivers, inc_loader,
 diff --git a/src/gallium/winsys/sw/dri/dri_sw_winsys.c b/src/gallium/winsys/sw/dri/dri_sw_winsys.c
 index 6bd2e6a..3624fa8 100644
 --- a/src/gallium/winsys/sw/dri/dri_sw_winsys.c
