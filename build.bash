@@ -45,8 +45,8 @@ meson setup "build-android" \
             -Dcpp_rtti=false \
             -Dxmlconfig=disabled \
             -Dandroid-stub=true \
-            -Dandroid-libbacktrace=enabled \
-            -Dandroid-strict=true \
+            -Dandroid-libbacktrace=disabled \
+            -Dandroid-strict=false \
             -Dxlib-lease=disabled \
             -Degl=disabled \
             -Dgbm=disabled \
