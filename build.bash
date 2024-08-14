@@ -43,8 +43,8 @@ meson setup "build-android" \
             -Dplatforms=android \
             -Dplatform-sdk-version=24 \
             -Dandroid-stub=true \
-            -Dandroid-libbacktrace=disabled \
-            -Dandroid-strict=false \
+            -Dandroid-libbacktrace=enabled \
+            -Dandroid-strict=true \
             -Dxlib-lease=disabled \
             -Degl=disabled \
             -Dgbm=disabled \
@@ -52,8 +52,8 @@ meson setup "build-android" \
             -Dllvm=disabled \
             -Dopengl=true \
             -Dosmesa=true \
-            -Dvulkan-drivers= \
-            -Dgallium-drivers=zink \
+            -Dvulkan-drivers=swrast \
+            -Dgallium-drivers=swrast,zink \
             -Dshared-glapi=true \
             -Dbuildtype=release
             # -Dfreedreno-kmds=kgsl,msm \
